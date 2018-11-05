@@ -16,7 +16,6 @@ public class TestModel {
     private String testClass;
     private String testPackage;
 
-
     public String getFullName() {
         StringJoiner joiner = new StringJoiner(".");
         joiner.add(testPackage).add(testClass).add(testName);
