@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.StringJoiner;
 
 @Getter
@@ -14,11 +15,25 @@ import java.util.StringJoiner;
 public class TestModel {
     private String testName;
     private String testClass;
-    private String testPackage;
 
     public String getFullName() {
         StringJoiner joiner = new StringJoiner(".");
-        joiner.add(testPackage).add(testClass).add(testName);
+        joiner.add(testClass).add(testName);
         return joiner.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TestModel testModel = (TestModel) o;
+        return Objects.equals(testName, testModel.testName) &&
+                Objects.equals(testClass, testModel.testClass);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(testName, testClass);
     }
 }

@@ -9,7 +9,7 @@ class TestModelTest {
 
     @Test
     public void shouldReturnFullName() {
-        TestModel test = new TestModel("shouldReturnFullName", "TestModelTest", "co.igorski");
+        TestModel test = new TestModel("shouldReturnFullName", "co.igorski.TestModelTest");
         assertThat(test.getFullName()).isEqualTo("co.igorski.TestModelTest.shouldReturnFullName");
     }
 }

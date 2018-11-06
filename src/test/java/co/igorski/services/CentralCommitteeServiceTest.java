@@ -1,20 +1,26 @@
 package co.igorski.services;
 
+import co.igorski.model.TestModel;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.UniqueId;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestPlan;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import stubs.ConfigurationStub;
-import stubs.TestDescriptionStub;
 import stubs.classes.DummyTest;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -24,29 +30,41 @@ class CentralCommitteeServiceTest {
 
     @Mock
     private LoginService loginService;
+    @Mock
+    private EventService eventService;
 
-    @Test
+    @BeforeEach
     public void beforeEach() {
-        ConfigurationStub configurationStub = new ConfigurationStub();
-        TestDescriptionStub descriptionStub = new TestDescriptionStub(
-                UniqueId.parse("[unique:id]"),
-                DummyTest.class,
-                configurationStub
-        );
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder
+                .request()
+                .selectors(selectPackage("stubs.classes"),
+                        selectClass(DummyTest.class))
+                .filters(includeClassNamePatterns(".*Test")).build();
 
-        List<TestDescriptor> descriptors = new ArrayList<>();
-        descriptors.add(descriptionStub);
-
-        testPlan = TestPlan.from(descriptors);
+        Launcher launcher = LauncherFactory.create();
+        testPlan = launcher.discover(request);
     }
 
     @Test
     public void shouldLoginAfterTestPlanExecutionIsStarted() {
-        CentralCommitteeService service = new CentralCommitteeService(loginService);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
         service.testPlanExecutionStarted(testPlan);
 
         verify(loginService).login();
     }
 
+    @Test
+    public void shouldSendTestPlanStartedEvent() {
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+        when(loginService.login()).thenReturn(true);
 
+        service.testPlanExecutionStarted(testPlan);
+
+        List<TestModel> tests = new ArrayList<>();
+
+        TestModel testModel = new TestModel("shouldReturnCorrectResult", "stubs.classes.DummyTest");
+        tests.add(testModel);
+
+        verify(eventService).testRunStarted(tests);
+    }
 }
