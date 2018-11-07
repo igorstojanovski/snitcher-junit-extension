@@ -39,6 +39,12 @@ public class BasicHttpHttpClient implements HttpClient {
         return conn.getResponseCode();
     }
 
+    @Override
+    public String post(String url, String body) {
+
+        return url;
+    }
+
     private String getPostDataString(Map<String, String> params) throws UnsupportedEncodingException {
         StringJoiner result = new StringJoiner("&");
 

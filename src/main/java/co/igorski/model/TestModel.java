@@ -16,12 +16,6 @@ public class TestModel {
     private String testName;
     private String testClass;
 
-    public String getFullName() {
-        StringJoiner joiner = new StringJoiner(".");
-        joiner.add(testClass).add(testName);
-        return joiner.toString();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
