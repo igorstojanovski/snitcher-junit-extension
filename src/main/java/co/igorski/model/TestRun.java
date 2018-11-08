@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestRun {
+    private Long id;
     private List<TestModel> tests;
     private Date started;
 }

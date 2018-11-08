@@ -48,6 +48,7 @@ class EventServiceTest {
         when(configuration.getServerUrl()).thenReturn("http://localhost:8080");
 //        when(configuration.getUsername()).thenReturn("someUser");
         when(basicHttpHttpClient.post(eq(url), anyString())).thenReturn("{\n" +
+                "  \"id\": 12345,\n" +
                 "  \"tests\": [\n" +
                 "    {\n" +
                 "      \"testName\": \"shouldRepresentTestOne\",\n" +
@@ -63,9 +64,10 @@ class EventServiceTest {
 
         User user = new User();
         user.setUsername("someUser");
-        TestRun testRun = eventService.testRunStarted(tests, user);
+        TestRun startedTestRun = eventService.testRunStarted(tests, user);
         verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
-        assertThat(testRun).isNotNull();
+        assertThat(startedTestRun).isNotNull();
+        assertThat(startedTestRun.getId()).isEqualTo(12345);
 
         String bodyValue = bodyCaptor.getValue();
         RunStarted runStarted = objectMapper.readValue(bodyValue, RunStarted.class);
