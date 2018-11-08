@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.client.HttpClient;
 import co.igorski.configuration.Configuration;
+import co.igorski.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +21,8 @@ class LoginService {
         this.httpClient = httpClient;
     }
 
-    boolean login() {
-        boolean isLoggedIn = false;
+    User login() {
+        User user = null;
         Map<String, String> form = new HashMap<>();
         form.put("username", configuration.getUsername());
         form.put("password", configuration.getPassword());
@@ -30,13 +31,14 @@ class LoginService {
             int responseStatus = httpClient.postForm(configuration.getServerUrl(), form);
 
             if(responseStatus == 200) {
-                isLoggedIn = true;
+                user = new User();
+                user.setUsername(configuration.getUsername());
             }
 
         } catch (IOException e) {
             LOGGER.error("Error while trying to log in.", e);
         }
 
-        return isLoggedIn;
+        return user;
     }
 }

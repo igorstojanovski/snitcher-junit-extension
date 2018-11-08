@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.TestModel;
+import co.igorski.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +58,9 @@ class CentralCommitteeServiceTest {
     @Test
     public void shouldSendTestPlanStartedEvent() throws SnitcherException {
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
-        when(loginService.login()).thenReturn(true);
+        User user = new User();
+
+        when(loginService.login()).thenReturn(user);
 
         service.testPlanExecutionStarted(testPlan);
 
@@ -66,6 +69,6 @@ class CentralCommitteeServiceTest {
         TestModel testModel = new TestModel("shouldReturnCorrectResult", "stubs.classes.DummyTest");
         tests.add(testModel);
 
-        verify(eventService).testRunStarted(tests);
+        verify(eventService).testRunStarted(tests, user);
     }
 }

@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.TestModel;
+import co.igorski.model.User;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -37,14 +38,14 @@ public class CentralCommitteeService implements TestExecutionListener {
     /**
      * Has two main functions:<br>
      * 1. to login
-     * 2. to create a list of all tests and send it to {@link EventService#testRunStarted(List)}
+     * 2. to create a list of all tests and send it to {@link EventService#testRunStarted(List, User)}
      *
      * @param testPlan the test plan retrieved from JUnit
      */
     public void testPlanExecutionStarted(TestPlan testPlan) {
-        loginService.login();
+        User user = loginService.login();
         try {
-            eventService.testRunStarted(collectAllTests(testPlan));
+            eventService.testRunStarted(collectAllTests(testPlan), user);
         } catch (SnitcherException e) {
             skipExecution = true;
         }

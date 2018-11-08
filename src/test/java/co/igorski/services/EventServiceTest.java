@@ -5,6 +5,8 @@ import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
+import co.igorski.model.User;
+import co.igorski.model.events.RunStarted;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -45,6 +46,7 @@ class EventServiceTest {
 
         String url = "http://localhost:8080/events/runStarted";
         when(configuration.getServerUrl()).thenReturn("http://localhost:8080");
+//        when(configuration.getUsername()).thenReturn("someUser");
         when(basicHttpHttpClient.post(eq(url), anyString())).thenReturn("{\n" +
                 "  \"tests\": [\n" +
                 "    {\n" +
@@ -59,14 +61,18 @@ class EventServiceTest {
                 "  \"started\": 1541629771671\n" +
                 "}");
 
-        TestRun testRun = eventService.testRunStarted(tests);
+        User user = new User();
+        user.setUsername("someUser");
+        TestRun testRun = eventService.testRunStarted(tests, user);
         verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
         assertThat(testRun).isNotNull();
 
         String bodyValue = bodyCaptor.getValue();
-        TestRun capturedRun = objectMapper.readValue(bodyValue, TestRun.class);
+        RunStarted runStarted = objectMapper.readValue(bodyValue, RunStarted.class);
 
-        assertThat(capturedRun.getTests()).isEqualTo(tests);
-        assertThat(capturedRun.getStarted()).isNotNull();
+        assertThat(runStarted.getTests()).isEqualTo(tests);
+        assertThat(runStarted.getTimestamp()).isNotNull();
+        assertThat(runStarted.getUser().getUsername()).isEqualTo("someUser");
+
     }
 }

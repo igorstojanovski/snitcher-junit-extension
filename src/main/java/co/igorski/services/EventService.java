@@ -5,11 +5,12 @@ import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
+import co.igorski.model.User;
+import co.igorski.model.events.RunStarted;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -23,14 +24,15 @@ public class EventService {
         this.configuration = configuration;
     }
 
-    public TestRun testRunStarted(List<TestModel> tests) throws SnitcherException {
+    public TestRun testRunStarted(List<TestModel> tests, User user) throws SnitcherException {
 
-        TestRun testRun = new TestRun();
-        testRun.setTests(tests);
-        testRun.setStarted(new Date());
+        RunStarted runStarted = new RunStarted();
+        runStarted.setUser(user);
+        runStarted.setTests(tests);
+        runStarted.setTimestamp(new Date());
         TestRun testRunResponse;
         try {
-            String body = objectMapper.writeValueAsString(testRun);
+            String body = objectMapper.writeValueAsString(runStarted);
             String response = httpClient.post(configuration.getServerUrl() + "/events/runStarted", body);
             testRunResponse = objectMapper.readValue(response, TestRun.class);
         } catch (JsonProcessingException e) {

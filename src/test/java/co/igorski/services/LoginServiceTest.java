@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.client.HttpClient;
 import co.igorski.configuration.Configuration;
+import co.igorski.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,10 +46,10 @@ class LoginServiceTest {
 
         when(httpClient.postForm(HTTP_LOCALHOST_8080, form)).thenReturn(200);
 
-        boolean isLoggedIn = loginService.login();
+        User user = loginService.login();
 
         verify(httpClient).postForm(HTTP_LOCALHOST_8080, form);
-        assertThat(isLoggedIn).isTrue();
+        assertThat(user.getUsername()).isEqualTo(USERNAME);
     }
 
     @Test
@@ -57,9 +58,9 @@ class LoginServiceTest {
 
         when(httpClient.postForm(HTTP_LOCALHOST_8080, form)).thenReturn(401);
 
-        boolean isLoggedIn = loginService.login();
+        User user = loginService.login();
 
         verify(httpClient).postForm(HTTP_LOCALHOST_8080, form);
-        assertThat(isLoggedIn).isFalse();
+        assertThat(user).isNull();
     }
 }
