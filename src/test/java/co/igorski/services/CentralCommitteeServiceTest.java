@@ -66,7 +66,9 @@ class CentralCommitteeServiceTest {
 
         List<TestModel> tests = new ArrayList<>();
 
-        TestModel testModel = new TestModel("shouldReturnCorrectResult", "stubs.classes.DummyTest");
+        TestModel testModel = new TestModel();
+        testModel.setTestName("shouldReturnCorrectResult");
+        testModel.setTestClass("stubs.classes.DummyTest");
         tests.add(testModel);
 
         verify(eventService).testRunStarted(tests, user);

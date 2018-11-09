@@ -56,4 +56,10 @@ public class BasicHttpHttpClient implements HttpClient {
 
         return result.toString();
     }
+
+
+    @Override
+    public void get(String eq, String capture) {
+
+    }
 }

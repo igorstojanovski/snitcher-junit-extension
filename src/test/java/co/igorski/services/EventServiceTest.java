@@ -3,11 +3,14 @@ package co.igorski.services;
 import co.igorski.client.BasicHttpHttpClient;
 import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
+import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
 import co.igorski.model.events.RunStarted;
+import co.igorski.model.events.TestStarted;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +31,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class EventServiceTest {
 
+    public static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
+    public static final String TEST_CLASS = "co.igroski.tests.EventServiceTest";
     @Mock
     private BasicHttpHttpClient basicHttpHttpClient;
     @Mock
@@ -35,28 +40,40 @@ class EventServiceTest {
     @Captor
     private ArgumentCaptor<String> bodyCaptor;
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    public void beforeEach() {
+        when(configuration.getServerUrl()).thenReturn(HTTP_LOCALHOST_8080);
+    }
+
     @Test
     public void shouldSendCorrectEventStartedPost() throws IOException, SnitcherException {
         EventService eventService = new EventService(basicHttpHttpClient, configuration);
 
         List<TestModel> tests = new ArrayList<>();
 
-        tests.add(new TestModel("shouldRepresentTestOne", "co.igroski.tests"));
-        tests.add(new TestModel("shouldRepresentTestTwo", "co.igroski.tests"));
+        TestModel one = new TestModel();
+        one.setTestClass(TEST_CLASS);
+        one.setTestClass("shouldRepresentTestOne");
 
-        String url = "http://localhost:8080/events/runStarted";
-        when(configuration.getServerUrl()).thenReturn("http://localhost:8080");
-//        when(configuration.getUsername()).thenReturn("someUser");
+        TestModel two = new TestModel();
+        two.setTestClass(TEST_CLASS);
+        two.setTestClass("shouldRepresentTestTwo");
+
+        tests.add(one);
+        tests.add(two);
+
+        String url = HTTP_LOCALHOST_8080 + "/events/runStarted";
         when(basicHttpHttpClient.post(eq(url), anyString())).thenReturn("{\n" +
                 "  \"id\": 12345,\n" +
                 "  \"tests\": [\n" +
                 "    {\n" +
                 "      \"testName\": \"shouldRepresentTestOne\",\n" +
-                "      \"testClass\": \"co.igroski.tests\"\n" +
+                "      \"testClass\": \"co.igroski.tests.EventServiceTest\"\n" +
                 "    },\n" +
                 "    {\n" +
                 "      \"testName\": \"shouldRepresentTestTwo\",\n" +
-                "      \"testClass\": \"co.igroski.tests\"\n" +
+                "      \"testClass\": \"co.igroski.tests.EventServiceTest\"\n" +
                 "    }\n" +
                 "  ],\n" +
                 "  \"started\": 1541629771671\n" +
@@ -77,4 +94,26 @@ class EventServiceTest {
         assertThat(runStarted.getUser().getUsername()).isEqualTo("someUser");
 
     }
+
+    @Test
+    public void shouldSendTestStartedEvent() throws IOException, SnitcherException {
+        EventService eventService = new EventService(basicHttpHttpClient, configuration);
+        TestModel testModel = new TestModel();
+        testModel.setTestClass(TEST_CLASS);
+        testModel.setTestName("shouldSendTestStartedEvent");
+
+        String url = HTTP_LOCALHOST_8080 + "/events/testStarted";
+        Long runId = 1L;
+        eventService.testStarted(testModel, runId);
+
+        verify(basicHttpHttpClient).get(eq(url), bodyCaptor.capture());
+
+        String bodyValue = bodyCaptor.getValue();
+        TestStarted testStarted = objectMapper.readValue(bodyValue, TestStarted.class);
+
+        assertThat(testStarted.getRunId()).isEqualTo(runId);
+        assertThat(testStarted.getTest()).isEqualTo(testModel);
+        assertThat(testModel.getStatus()).isEqualTo(Status.RUNNING);
+    }
+
 }
