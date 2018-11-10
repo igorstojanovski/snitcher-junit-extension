@@ -106,7 +106,7 @@ class EventServiceTest {
         Long runId = 1L;
         eventService.testStarted(testModel, runId);
 
-        verify(basicHttpHttpClient).get(eq(url), bodyCaptor.capture());
+        verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
 
         String bodyValue = bodyCaptor.getValue();
         TestStarted testStarted = objectMapper.readValue(bodyValue, TestStarted.class);

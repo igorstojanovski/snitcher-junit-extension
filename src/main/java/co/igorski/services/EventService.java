@@ -54,10 +54,12 @@ class EventService {
         testStarted.setTimestamp(new Date());
         testStarted.setRunId(runId);
         try {
-            httpClient.get(configuration.getServerUrl() + "/events/testStarted",
+            httpClient.post(configuration.getServerUrl() + "/events/testStarted",
                     objectMapper.writeValueAsString(testStarted));
         } catch (JsonProcessingException e) {
             throw new SnitcherException("Error when serializing TestStarted object to JSON", e);
+        } catch (IOException e) {
+            throw new SnitcherException("Error when sending TestStarted request.", e);
         }
     }
 }
