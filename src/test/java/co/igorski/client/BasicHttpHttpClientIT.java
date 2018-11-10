@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -51,21 +50,6 @@ class BasicHttpHttpClientIT {
 
         HttpClient client = new BasicHttpHttpClient();
         String response = client.post("http://localhost:" + server.port() + "/postTest", body);
-
-        assertThat(response).isEqualTo("something");
-    }
-
-    @Test
-    public void shouldGet(@Wiremock WireMockServer server) throws IOException {
-
-        String body = "{}";
-
-        server.stubFor(get(urlEqualTo("/postGet"))
-                .withRequestBody(equalTo(body))
-                .willReturn(aResponse().withBody("something")));
-
-        HttpClient client = new BasicHttpHttpClient();
-        String response = client.post("http://localhost:" + server.port() + "/postGet", body);
 
         assertThat(response).isEqualTo("something");
     }
