@@ -20,7 +20,6 @@ public class BasicHttpHttpClient implements HttpClient {
 
     @Override
     public int postForm(String target, Map<String, String> form) throws IOException {
-
         URL url;
         url = new URL(target);
 
@@ -32,7 +31,9 @@ public class BasicHttpHttpClient implements HttpClient {
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        try (OutputStream os = conn.getOutputStream(); BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"))) {
+        try (OutputStream os = conn.getOutputStream();
+             BufferedWriter writer = new BufferedWriter(
+                     new OutputStreamWriter(os, "UTF-8"))) {
             writer.write(getPostDataString(form));
             writer.flush();
         }
@@ -62,7 +63,7 @@ public class BasicHttpHttpClient implements HttpClient {
         return getStringFromInputStream(conn.getInputStream());
     }
 
-    private String getStringFromInputStream(InputStream inputStream) throws UnsupportedEncodingException {
+    private String getStringFromInputStream(InputStream inputStream) {
 
         String response = null;
         try (InputStream in = inputStream; ByteArrayOutputStream result = new ByteArrayOutputStream()) {
@@ -81,12 +82,12 @@ public class BasicHttpHttpClient implements HttpClient {
     }
 
     private String getPostDataString(Map<String, String> params) throws UnsupportedEncodingException {
-
         StringJoiner result = new StringJoiner("&");
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
 
-            result.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+            result.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" +
+                    URLEncoder.encode(entry.getValue(), "UTF-8"));
         }
 
         return result.toString();
