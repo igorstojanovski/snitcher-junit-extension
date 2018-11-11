@@ -13,8 +13,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
 class EventService {
     private final HttpClient httpClient;
@@ -26,11 +27,11 @@ class EventService {
         this.configuration = configuration;
     }
 
-    TestRun testRunStarted(List<TestModel> tests, User user) throws SnitcherException {
+    TestRun testRunStarted(Map<String, TestModel> tests, User user) throws SnitcherException {
 
         RunStarted runStarted = new RunStarted();
         runStarted.setUser(user);
-        runStarted.setTests(tests);
+        runStarted.setTests(new ArrayList<>(tests.values()));
         runStarted.setTimestamp(new Date());
         TestRun testRunResponse;
         try {
