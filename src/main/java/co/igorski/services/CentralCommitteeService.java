@@ -1,6 +1,7 @@
 package co.igorski.services;
 
 import co.igorski.exceptions.SnitcherException;
+import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
@@ -27,6 +28,7 @@ public class CentralCommitteeService implements TestExecutionListener {
     private final EventService eventService;
     private boolean skipExecution;
     private TestRun testRun;
+    private Map<String, TestModel> tests;
 
     /**
      * Needs a login service and an event service.
@@ -49,7 +51,8 @@ public class CentralCommitteeService implements TestExecutionListener {
     public void testPlanExecutionStarted(TestPlan testPlan) {
         User user = loginService.login();
         try {
-            testRun = eventService.testRunStarted(collectAllTests(testPlan), user);
+            tests = collectAllTests(testPlan);
+            testRun = eventService.testRunStarted(tests, user);
         } catch (SnitcherException e) {
             skipExecution = true;
         }
@@ -67,12 +70,12 @@ public class CentralCommitteeService implements TestExecutionListener {
         return testModelList;
     }
 
-    private void addTests(Map<String, TestModel> testModelList, Set<TestIdentifier> children, TestPlan testPlan) {
+    private void addTests(Map<String, TestModel> tests, Set<TestIdentifier> children, TestPlan testPlan) {
         for (TestIdentifier testIdentifier : children) {
             if (testIdentifier.getType() == TestDescriptor.Type.TEST) {
-                getTestModel(testIdentifier).ifPresent(testModel -> testModelList.put(testModel.uniqueId(), testModel));
+                createTest(testIdentifier).ifPresent(testModel -> tests.put(testModel.uniqueId(), testModel));
             } else if (testIdentifier.getType() == TestDescriptor.Type.CONTAINER) {
-                addTests(testModelList, testPlan.getChildren(testIdentifier), testPlan);
+                addTests(tests, testPlan.getChildren(testIdentifier), testPlan);
             }
         }
     }
@@ -84,7 +87,7 @@ public class CentralCommitteeService implements TestExecutionListener {
      * @param testIdentifier the test identifier to create a TestModel from
      * @return optional of TestModel
      */
-    private Optional<TestModel> getTestModel(TestIdentifier testIdentifier) {
+    private Optional<TestModel> createTest(TestIdentifier testIdentifier) {
         Optional<TestModel> optional = Optional.empty();
         Optional<TestSource> source = testIdentifier.getSource();
         if (source.isPresent() && source.get() instanceof MethodSource) {
@@ -100,20 +103,17 @@ public class CentralCommitteeService implements TestExecutionListener {
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
+        TestModel testModel = tests.get(getUniqueId(testIdentifier));
+        testModel.setStatus(Status.RUNNING);
+        try {
+            eventService.testStarted(testModel, testRun.getId());
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test started event", e);
+        }
+    }
+
+    private String getUniqueId(TestIdentifier testIdentifier) {
         MethodSource methodSource = (MethodSource) testIdentifier.getSource().get();
-        TestModel testModel = new TestModel();
-        testModel.setTestClass(methodSource.getClassName());
-        testModel.setTestName(methodSource.getMethodName());
-
-        Optional<TestModel> optional = getTestModel(testIdentifier);
-
-        optional.ifPresent(t -> {
-            try {
-                eventService.testStarted(t, testRun.getId());
-            } catch (SnitcherException e) {
-                LOG.error("Error sending test started event", e);
-            }
-        });
-
+        return methodSource.getClassName() + '.' + methodSource.getMethodName();
     }
 }

@@ -3,7 +3,6 @@ package co.igorski.services;
 import co.igorski.client.HttpClient;
 import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
-import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
@@ -49,7 +48,6 @@ class EventService {
 
     void testStarted(TestModel testModel, Long runId) throws SnitcherException {
 
-        testModel.setStatus(Status.RUNNING);
         TestStarted testStarted = new TestStarted();
         testStarted.setTest(testModel);
         testStarted.setTimestamp(new Date());

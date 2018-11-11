@@ -3,7 +3,6 @@ package co.igorski.services;
 import co.igorski.client.BasicHttpHttpClient;
 import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
-import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
@@ -116,7 +115,6 @@ class EventServiceTest {
 
         assertThat(testStarted.getRunId()).isEqualTo(runId);
         assertThat(testStarted.getTest()).isEqualTo(testModel);
-        assertThat(testModel.getStatus()).isEqualTo(Status.RUNNING);
     }
 
 }
