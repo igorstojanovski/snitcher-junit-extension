@@ -31,26 +31,24 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CentralCommitteeServiceTest {
-
-    private TestPlan testPlan;
-
     @Mock
     private LoginService loginService;
     @Mock
     private EventService eventService;
     private TestModel test;
     private List<TestModel> tests;
+    private Launcher launcher;
+    private LauncherDiscoveryRequest request;
 
     @BeforeEach
     public void beforeEach() {
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder
+        request = LauncherDiscoveryRequestBuilder
                 .request()
                 .selectors(selectPackage("stubs.classes"),
                         selectClass(DummyTest.class))
                 .filters(includeClassNamePatterns(".*Test")).build();
 
-        Launcher launcher = LauncherFactory.create();
-        testPlan = launcher.discover(request);
+        launcher = LauncherFactory.create();
 
         test = new TestModel();
         test.setTestName("shouldReturnCorrectResult");
@@ -62,6 +60,7 @@ class CentralCommitteeServiceTest {
 
     @Test
     public void shouldLoginAfterTestPlanExecutionIsStarted() {
+        TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
         service.testPlanExecutionStarted(testPlan);
 
@@ -70,6 +69,7 @@ class CentralCommitteeServiceTest {
 
     @Test
     public void shouldSendTestPlanStartedEvent() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
         User user = new User();
 
@@ -82,6 +82,7 @@ class CentralCommitteeServiceTest {
 
     @Test
     public void shouldSendTestStartedEvent() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
 
         User user = new User();
@@ -98,10 +99,17 @@ class CentralCommitteeServiceTest {
     }
 
     private TestIdentifier getTestIdentifier() {
+        TestPlan testPlan = launcher.discover(request);
         Iterator<TestIdentifier> rootIterator = testPlan.getRoots().iterator();
 
-        rootIterator.next();
-        TestIdentifier jupiterRoot = rootIterator.next();
+        TestIdentifier jupiterRoot = null;
+        while (rootIterator.hasNext()) {
+            TestIdentifier tmp = rootIterator.next();
+            if (tmp.getUniqueId().equals("[engine:junit-jupiter]")) {
+                jupiterRoot = tmp;
+                break;
+            }
+        }
 
         Set<TestIdentifier> children = testPlan.getChildren(jupiterRoot);
         TestIdentifier classIdentifier = children.iterator().next();
