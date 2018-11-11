@@ -1,18 +1,23 @@
 package co.igorski.services;
 
 import co.igorski.exceptions.SnitcherException;
+import co.igorski.model.Outcome;
+import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stubs.classes.DummyTest;
@@ -22,9 +27,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +46,8 @@ class CentralCommitteeServiceTest {
     private Map<String, TestModel> tests;
     private Launcher launcher;
     private LauncherDiscoveryRequest request;
+    @Captor
+    private ArgumentCaptor<TestModel> testModelCaptor;
 
     @BeforeEach
     public void beforeEach() {
@@ -96,6 +105,28 @@ class CentralCommitteeServiceTest {
         service.executionStarted(testIdentifier);
 
         verify(eventService).testStarted(test, testRun.getId());
+    }
+
+    @Test
+    public void shouldSendTestFinishedEvent() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+
+        User user = new User();
+        when(loginService.login()).thenReturn(user);
+        TestRun testRun = new TestRun();
+        testRun.setId(1L);
+        when(eventService.testRunStarted(tests, user)).thenReturn(testRun);
+        service.testPlanExecutionStarted(testPlan);
+
+        TestIdentifier testIdentifier = getTestIdentifier();
+        service.executionFinished(testIdentifier, TestExecutionResult.successful());
+
+        verify(eventService).testFinished(testModelCaptor.capture(), eq(testRun.getId()));
+        TestModel captured = testModelCaptor.getValue();
+
+        assertThat(captured.getStatus()).isEqualTo(Status.FINISHED);
+        assertThat(captured.getOutcome()).isEqualTo(Outcome.PASSED);
     }
 
     private TestIdentifier getTestIdentifier() {

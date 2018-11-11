@@ -13,6 +13,7 @@ public class TestModel {
     private String testName;
     private String testClass;
     private Status status = Status.PENDING;
+    private Outcome outcome;
 
     public String uniqueId() {
         return testClass + '.' + testName;

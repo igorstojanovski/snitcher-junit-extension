@@ -61,4 +61,8 @@ class EventService {
             throw new SnitcherException("Error when sending TestStarted request.", e);
         }
     }
+
+    public void testFinished(TestModel test, Long id) {
+
+    }
 }
