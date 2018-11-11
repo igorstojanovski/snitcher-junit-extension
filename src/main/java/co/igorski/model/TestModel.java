@@ -14,6 +14,10 @@ public class TestModel {
     private String testClass;
     private Status status = Status.PENDING;
 
+    public String uniqueId() {
+        return testClass + '.' + testName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

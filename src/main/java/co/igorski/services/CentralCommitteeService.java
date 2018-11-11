@@ -13,8 +13,8 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,7 +42,7 @@ public class CentralCommitteeService implements TestExecutionListener {
     /**
      * Has two main functions:<br>
      * 1. to login
-     * 2. to create a list of all tests and send it to {@link EventService#testRunStarted(List, User)}
+     * 2. to create a list of all tests and send it to {@link EventService#testRunStarted(Map, User)}
      *
      * @param testPlan the test plan retrieved from JUnit
      */
@@ -55,8 +55,8 @@ public class CentralCommitteeService implements TestExecutionListener {
         }
     }
 
-    private List<TestModel> collectAllTests(TestPlan testPlan) {
-        List<TestModel> testModelList = new ArrayList<>();
+    private Map<String, TestModel> collectAllTests(TestPlan testPlan) {
+        Map<String, TestModel> testModelList = new HashMap<>();
 
         Set<TestIdentifier> roots = testPlan.getRoots();
         for (TestIdentifier root : roots) {
@@ -67,10 +67,10 @@ public class CentralCommitteeService implements TestExecutionListener {
         return testModelList;
     }
 
-    private void addTests(List<TestModel> testModelList, Set<TestIdentifier> children, TestPlan testPlan) {
+    private void addTests(Map<String, TestModel> testModelList, Set<TestIdentifier> children, TestPlan testPlan) {
         for (TestIdentifier testIdentifier : children) {
             if (testIdentifier.getType() == TestDescriptor.Type.TEST) {
-                getTestModel(testIdentifier).ifPresent(testModelList::add);
+                getTestModel(testIdentifier).ifPresent(testModel -> testModelList.put(testModel.uniqueId(), testModel));
             } else if (testIdentifier.getType() == TestDescriptor.Type.CONTAINER) {
                 addTests(testModelList, testPlan.getChildren(testIdentifier), testPlan);
             }

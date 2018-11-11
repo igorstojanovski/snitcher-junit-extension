@@ -17,9 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stubs.classes.DummyTest;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
@@ -36,7 +36,7 @@ class CentralCommitteeServiceTest {
     @Mock
     private EventService eventService;
     private TestModel test;
-    private List<TestModel> tests;
+    private Map<String, TestModel> tests;
     private Launcher launcher;
     private LauncherDiscoveryRequest request;
 
@@ -54,8 +54,8 @@ class CentralCommitteeServiceTest {
         test.setTestName("shouldReturnCorrectResult");
         test.setTestClass("stubs.classes.DummyTest");
 
-        tests = new ArrayList<>();
-        tests.add(test);
+        tests = new HashMap<>();
+        tests.put(test.uniqueId(), test);
     }
 
     @Test

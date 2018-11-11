@@ -20,7 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -50,18 +51,18 @@ class EventServiceTest {
     public void shouldSendCorrectEventStartedPost() throws IOException, SnitcherException {
         EventService eventService = new EventService(basicHttpHttpClient, configuration);
 
-        List<TestModel> tests = new ArrayList<>();
+        Map<String, TestModel> tests = new HashMap<>();
 
         TestModel one = new TestModel();
         one.setTestClass(TEST_CLASS);
-        one.setTestClass("shouldRepresentTestOne");
+        one.setTestName("shouldRepresentTestOne");
 
         TestModel two = new TestModel();
         two.setTestClass(TEST_CLASS);
-        two.setTestClass("shouldRepresentTestTwo");
+        two.setTestName("shouldRepresentTestTwo");
 
-        tests.add(one);
-        tests.add(two);
+        tests.put(one.uniqueId(), one);
+        tests.put(two.uniqueId(), two);
 
         String url = HTTP_LOCALHOST_8080 + "/events/runStarted";
         when(basicHttpHttpClient.post(eq(url), anyString())).thenReturn("{\n" +
@@ -81,7 +82,9 @@ class EventServiceTest {
 
         User user = new User();
         user.setUsername("someUser");
+
         TestRun startedTestRun = eventService.testRunStarted(tests, user);
+
         verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
         assertThat(startedTestRun).isNotNull();
         assertThat(startedTestRun.getId()).isEqualTo(12345);
@@ -89,7 +92,7 @@ class EventServiceTest {
         String bodyValue = bodyCaptor.getValue();
         RunStarted runStarted = objectMapper.readValue(bodyValue, RunStarted.class);
 
-        assertThat(runStarted.getTests()).isEqualTo(tests);
+        assertThat(runStarted.getTests()).isEqualTo(new ArrayList<>(tests.values()));
         assertThat(runStarted.getTimestamp()).isNotNull();
         assertThat(runStarted.getUser().getUsername()).isEqualTo("someUser");
 
