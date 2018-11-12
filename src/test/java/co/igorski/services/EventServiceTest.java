@@ -7,6 +7,7 @@ import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
 import co.igorski.model.events.RunStarted;
+import co.igorski.model.events.TestFinished;
 import co.igorski.model.events.TestStarted;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,4 +118,23 @@ class EventServiceTest {
         assertThat(testStarted.getTest()).isEqualTo(testModel);
     }
 
+    @Test
+    public void shouldSendTestFinishedEvent() throws IOException, SnitcherException {
+        EventService eventService = new EventService(basicHttpHttpClient, configuration);
+        TestModel testModel = new TestModel();
+        testModel.setTestClass(TEST_CLASS);
+        testModel.setTestName("shouldSendTestFinishedEvent");
+
+        String url = HTTP_LOCALHOST_8080 + "/events/testFinished";
+        Long runId = 1L;
+        eventService.testFinished(testModel, runId);
+
+        verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
+
+        String bodyValue = bodyCaptor.getValue();
+        TestFinished testStarted = objectMapper.readValue(bodyValue, TestFinished.class);
+
+        assertThat(testStarted.getRunId()).isEqualTo(runId);
+        assertThat(testStarted.getTest()).isEqualTo(testModel);
+    }
 }

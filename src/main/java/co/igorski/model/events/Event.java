@@ -11,7 +11,9 @@ import java.util.Date;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, property="type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value=RunStarted.class, name = "RunStarted"),
+        @JsonSubTypes.Type(value = TestFinished.class, name = "TestFinished"),
+        @JsonSubTypes.Type(value = TestStarted.class, name = "TestStarted"),
+        @JsonSubTypes.Type(value = RunStarted.class, name = "RunStarted")
 })
 @Getter
 @Setter

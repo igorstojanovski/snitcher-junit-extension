@@ -6,7 +6,9 @@ import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
+import co.igorski.model.events.Event;
 import co.igorski.model.events.RunStarted;
+import co.igorski.model.events.TestFinished;
 import co.igorski.model.events.TestStarted;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,17 +54,25 @@ class EventService {
         testStarted.setTest(testModel);
         testStarted.setTimestamp(new Date());
         testStarted.setRunId(runId);
-        try {
-            httpClient.post(configuration.getServerUrl() + "/events/testStarted",
-                    objectMapper.writeValueAsString(testStarted));
-        } catch (JsonProcessingException e) {
-            throw new SnitcherException("Error when serializing TestStarted object to JSON", e);
-        } catch (IOException e) {
-            throw new SnitcherException("Error when sending TestStarted request.", e);
-        }
+        sendPost("/events/testStarted", testStarted);
     }
 
-    public void testFinished(TestModel test, Long id) {
+    void testFinished(TestModel testModel, Long runId) throws SnitcherException {
 
+        TestFinished testFinished = new TestFinished();
+        testFinished.setTest(testModel);
+        testFinished.setTimestamp(new Date());
+        testFinished.setRunId(runId);
+        sendPost("/events/testFinished", testFinished);
+    }
+
+    private void sendPost(String endpoint, Event event) throws SnitcherException {
+        try {
+            httpClient.post(configuration.getServerUrl() + endpoint, objectMapper.writeValueAsString(event));
+        } catch (JsonProcessingException e) {
+            throw new SnitcherException("Error when serializing object to JSON", e);
+        } catch (IOException e) {
+            throw new SnitcherException("Error when sending Event request.", e);
+        }
     }
 }

@@ -148,6 +148,10 @@ public class CentralCommitteeService implements TestExecutionListener {
             testExecutionResult.getThrowable().ifPresent(t -> test.setError(getExceptionMessageChain(t)));
         }
 
-        eventService.testFinished(test, testRun.getId());
+        try {
+            eventService.testFinished(test, testRun.getId());
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test finished event.", e);
+        }
     }
 }
