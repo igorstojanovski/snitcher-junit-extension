@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * The central service that will act as a facade.
@@ -114,22 +115,39 @@ public class CentralCommitteeService implements TestExecutionListener {
         }
     }
 
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        TestModel testModel = tests.get(getUniqueId(testIdentifier));
-        testModel.setStatus(Status.FINISHED);
+    private static String getExceptionMessageChain(Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        while (throwable != null) {
+            if (throwable.getMessage() != null) {
+                joiner.add(throwable.getMessage());
+            }
+            StackTraceElement[] elements = throwable.getStackTrace();
+            for (StackTraceElement element : elements) {
+                joiner.add(element.toString());
+            }
 
-        if (testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL) {
-            testModel.setOutcome(Outcome.PASSED);
-        } else {
-            testModel.setOutcome(Outcome.FAILED);
+            throwable = throwable.getCause();
         }
-
-        eventService.testFinished(testModel, testRun.getId());
+        return joiner.toString();
     }
 
     private String getUniqueId(TestIdentifier testIdentifier) {
         MethodSource methodSource = (MethodSource) testIdentifier.getSource().get();
         return methodSource.getClassName() + '.' + methodSource.getMethodName();
+    }
+
+    @Override
+    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        TestModel test = tests.get(getUniqueId(testIdentifier));
+        test.setStatus(Status.FINISHED);
+
+        if (testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL) {
+            test.setOutcome(Outcome.PASSED);
+        } else {
+            test.setOutcome(Outcome.FAILED);
+            testExecutionResult.getThrowable().ifPresent(t -> test.setError(getExceptionMessageChain(t)));
+        }
+
+        eventService.testFinished(test, testRun.getId());
     }
 }

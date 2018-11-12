@@ -21,6 +21,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stubs.classes.DummyTest;
+import stubs.exceptions.DummyException;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -108,7 +109,7 @@ class CentralCommitteeServiceTest {
     }
 
     @Test
-    public void shouldSendTestFinishedEvent() throws SnitcherException {
+    public void shouldSendTestFinishedEventWithSuccess() throws SnitcherException {
         TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
 
@@ -127,6 +128,30 @@ class CentralCommitteeServiceTest {
 
         assertThat(captured.getStatus()).isEqualTo(Status.FINISHED);
         assertThat(captured.getOutcome()).isEqualTo(Outcome.PASSED);
+    }
+
+    @Test
+    public void shouldSendTestFinishedEventWithFailure() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+
+        User user = new User();
+        when(loginService.login()).thenReturn(user);
+        TestRun testRun = new TestRun();
+        testRun.setId(1L);
+        when(eventService.testRunStarted(tests, user)).thenReturn(testRun);
+        service.testPlanExecutionStarted(testPlan);
+
+        TestIdentifier testIdentifier = getTestIdentifier();
+        service.executionFinished(testIdentifier, TestExecutionResult.failed(new DummyException()));
+
+        verify(eventService).testFinished(testModelCaptor.capture(), eq(testRun.getId()));
+        TestModel captured = testModelCaptor.getValue();
+
+        assertThat(captured.getStatus()).isEqualTo(Status.FINISHED);
+        assertThat(captured.getOutcome()).isEqualTo(Outcome.FAILED);
+        assertThat(captured.getError()).contains("co.igorski.services.CentralCommitteeServiceTest" +
+                ".shouldSendTestFinishedEventWithFailure(CentralCommitteeServiceTest.java:");
     }
 
     private TestIdentifier getTestIdentifier() {
