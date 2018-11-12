@@ -115,7 +115,7 @@ public class CentralCommitteeService implements TestExecutionListener {
         }
     }
 
-    private static String getExceptionMessageChain(Throwable throwable) {
+    private static String getStackTrace(Throwable throwable) {
         StringJoiner joiner = new StringJoiner("\n");
         while (throwable != null) {
             if (throwable.getMessage() != null) {
@@ -145,7 +145,7 @@ public class CentralCommitteeService implements TestExecutionListener {
             test.setOutcome(Outcome.PASSED);
         } else {
             test.setOutcome(Outcome.FAILED);
-            testExecutionResult.getThrowable().ifPresent(t -> test.setError(getExceptionMessageChain(t)));
+            testExecutionResult.getThrowable().ifPresent(t -> test.setError(getStackTrace(t)));
         }
 
         try {
