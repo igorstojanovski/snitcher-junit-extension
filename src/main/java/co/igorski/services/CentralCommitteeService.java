@@ -1,5 +1,8 @@
 package co.igorski.services;
 
+import co.igorski.client.BasicHttpHttpClient;
+import co.igorski.configuration.Configuration;
+import co.igorski.configuration.PropertiesConfigurationReader;
 import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.Outcome;
 import co.igorski.model.Status;
@@ -26,12 +29,20 @@ import java.util.StringJoiner;
  * The central service that will act as a facade.
  */
 public class CentralCommitteeService implements TestExecutionListener {
+
     private static final Logger LOG = LoggerFactory.getLogger(CentralCommitteeService.class);
+    private static final BasicHttpHttpClient HTTP_CLIENT = new BasicHttpHttpClient();
+    private static final Configuration CONFIGURATION = new Configuration(new PropertiesConfigurationReader()
+            .readProperties("application.properties"));
     private final LoginService loginService;
     private final EventService eventService;
     private boolean skipExecution;
     private TestRun testRun;
     private Map<String, TestModel> tests;
+
+    public CentralCommitteeService() {
+        this(new LoginService(CONFIGURATION, HTTP_CLIENT), new EventService(HTTP_CLIENT, CONFIGURATION));
+    }
 
     /**
      * Needs a login service and an event service.
