@@ -32,7 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,6 +90,18 @@ class CentralCommitteeServiceTest {
         service.testPlanExecutionStarted(testPlan);
 
         verify(eventService).testRunStarted(tests, user);
+    }
+
+    @Test
+    public void shouldNotSendEventsIfLoginWasNotSuccessful() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+
+        when(loginService.login()).thenReturn(null);
+
+        service.testPlanExecutionStarted(testPlan);
+
+        verify(eventService, never()).testRunStarted(any(), any());
     }
 
     @Test

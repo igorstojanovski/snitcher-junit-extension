@@ -54,6 +54,10 @@ public class CentralCommitteeService implements TestExecutionListener {
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
         User user = loginService.login();
+        if(user == null) {
+            skipExecution = true;
+            return;
+        }
         try {
             tests = collectAllTests(testPlan);
             testRun = eventService.testRunStarted(tests, user);
@@ -64,6 +68,8 @@ public class CentralCommitteeService implements TestExecutionListener {
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
+        if (skipExecution) return;
+
         TestModel testModel = tests.get(getUniqueId(testIdentifier));
         testModel.setStatus(Status.RUNNING);
         try {
@@ -75,6 +81,8 @@ public class CentralCommitteeService implements TestExecutionListener {
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        if (skipExecution) return;
+
         TestModel test = tests.get(getUniqueId(testIdentifier));
         test.setStatus(Status.FINISHED);
 
@@ -94,6 +102,8 @@ public class CentralCommitteeService implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
+        if (skipExecution) return;
+
         try {
             eventService.testRunFinished(testRun.getId());
         } catch (SnitcherException e) {
