@@ -51,6 +51,7 @@ public class CentralCommitteeService implements TestExecutionListener {
      *
      * @param testPlan the test plan retrieved from JUnit
      */
+    @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
         User user = loginService.login();
         try {
@@ -59,6 +60,67 @@ public class CentralCommitteeService implements TestExecutionListener {
         } catch (SnitcherException e) {
             skipExecution = true;
         }
+    }
+
+    @Override
+    public void executionStarted(TestIdentifier testIdentifier) {
+        TestModel testModel = tests.get(getUniqueId(testIdentifier));
+        testModel.setStatus(Status.RUNNING);
+        try {
+            eventService.testStarted(testModel, testRun.getId());
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test started event", e);
+        }
+    }
+
+    @Override
+    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        TestModel test = tests.get(getUniqueId(testIdentifier));
+        test.setStatus(Status.FINISHED);
+
+        if (testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL) {
+            test.setOutcome(Outcome.PASSED);
+        } else {
+            test.setOutcome(Outcome.FAILED);
+            testExecutionResult.getThrowable().ifPresent(t -> test.setError(getStackTrace(t)));
+        }
+
+        try {
+            eventService.testFinished(test, testRun.getId());
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test finished event.", e);
+        }
+    }
+
+    @Override
+    public void testPlanExecutionFinished(TestPlan testPlan) {
+        try {
+            eventService.testRunFinished(testRun.getId());
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test run finished event.", e);
+        }
+
+    }
+
+    private static String getStackTrace(Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        while (throwable != null) {
+            if (throwable.getMessage() != null) {
+                joiner.add(throwable.getMessage());
+            }
+            StackTraceElement[] elements = throwable.getStackTrace();
+            for (StackTraceElement element : elements) {
+                joiner.add(element.toString());
+            }
+
+            throwable = throwable.getCause();
+        }
+        return joiner.toString();
+    }
+
+    private String getUniqueId(TestIdentifier testIdentifier) {
+        MethodSource methodSource = (MethodSource) testIdentifier.getSource().get();
+        return methodSource.getClassName() + '.' + methodSource.getMethodName();
     }
 
     private Map<String, TestModel> collectAllTests(TestPlan testPlan) {
@@ -102,56 +164,5 @@ public class CentralCommitteeService implements TestExecutionListener {
         }
 
         return optional;
-    }
-
-    @Override
-    public void executionStarted(TestIdentifier testIdentifier) {
-        TestModel testModel = tests.get(getUniqueId(testIdentifier));
-        testModel.setStatus(Status.RUNNING);
-        try {
-            eventService.testStarted(testModel, testRun.getId());
-        } catch (SnitcherException e) {
-            LOG.error("Error sending test started event", e);
-        }
-    }
-
-    private static String getStackTrace(Throwable throwable) {
-        StringJoiner joiner = new StringJoiner("\n");
-        while (throwable != null) {
-            if (throwable.getMessage() != null) {
-                joiner.add(throwable.getMessage());
-            }
-            StackTraceElement[] elements = throwable.getStackTrace();
-            for (StackTraceElement element : elements) {
-                joiner.add(element.toString());
-            }
-
-            throwable = throwable.getCause();
-        }
-        return joiner.toString();
-    }
-
-    private String getUniqueId(TestIdentifier testIdentifier) {
-        MethodSource methodSource = (MethodSource) testIdentifier.getSource().get();
-        return methodSource.getClassName() + '.' + methodSource.getMethodName();
-    }
-
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        TestModel test = tests.get(getUniqueId(testIdentifier));
-        test.setStatus(Status.FINISHED);
-
-        if (testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL) {
-            test.setOutcome(Outcome.PASSED);
-        } else {
-            test.setOutcome(Outcome.FAILED);
-            testExecutionResult.getThrowable().ifPresent(t -> test.setError(getStackTrace(t)));
-        }
-
-        try {
-            eventService.testFinished(test, testRun.getId());
-        } catch (SnitcherException e) {
-            LOG.error("Error sending test finished event.", e);
-        }
     }
 }

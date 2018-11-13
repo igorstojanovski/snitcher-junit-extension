@@ -91,6 +91,24 @@ class CentralCommitteeServiceTest {
     }
 
     @Test
+    public void shouldSendTestPlanFinishedEvent() throws SnitcherException {
+        TestPlan testPlan = launcher.discover(request);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+
+        User user = new User();
+        when(loginService.login()).thenReturn(user);
+        TestRun testRun = new TestRun();
+        testRun.setId(1L);
+        when(eventService.testRunStarted(tests, user)).thenReturn(testRun);
+        service.testPlanExecutionStarted(testPlan);
+
+        service.testPlanExecutionFinished(testPlan);
+
+        verify(eventService).testRunFinished(1L);
+    }
+
+
+    @Test
     public void shouldSendTestStartedEvent() throws SnitcherException {
         TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
