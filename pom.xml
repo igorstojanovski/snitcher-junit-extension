@@ -86,6 +86,13 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <resources>
+            <resource>
+                <directory>src/prod-resources</directory>
+            </resource>
+        </resources>
+
     </build>
 
 </project>
