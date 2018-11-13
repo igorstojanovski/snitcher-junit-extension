@@ -15,5 +15,6 @@ import java.util.List;
 public class TestRun {
     private Long id;
     private List<TestModel> tests;
-    private Date started;
+    private Date startTime;
+    private Date endTime;
 }

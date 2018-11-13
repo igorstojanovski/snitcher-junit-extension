@@ -13,6 +13,12 @@ public class TestModel {
     private String testName;
     private String testClass;
     private Status status = Status.PENDING;
+    private Outcome outcome;
+    private String error;
+
+    public String uniqueId() {
+        return testClass + '.' + testName;
+    }
 
     @Override
     public boolean equals(Object o) {
