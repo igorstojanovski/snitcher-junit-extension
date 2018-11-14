@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.client.HttpClient;
 import co.igorski.configuration.Configuration;
+import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ class LoginServiceTest {
     }
 
     @Test
-    public void shouldReturnTrueWhenLoginSucceeded() throws IOException {
+    public void shouldReturnTrueWhenLoginSucceeded() throws IOException, SnitcherException {
         LoginService loginService = new LoginService(configuration, httpClient);
 
         when(httpClient.postForm(HTTP_LOCALHOST_8080, form)).thenReturn(200);
@@ -53,7 +54,7 @@ class LoginServiceTest {
     }
 
     @Test
-    public void shouldReturnFalseWhenLoginFailed() throws IOException {
+    public void shouldReturnFalseWhenLoginFailed() throws IOException, SnitcherException {
         LoginService loginService = new LoginService(configuration, httpClient);
 
         when(httpClient.postForm(HTTP_LOCALHOST_8080, form)).thenReturn(401);

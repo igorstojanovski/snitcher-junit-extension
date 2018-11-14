@@ -2,6 +2,7 @@ package co.igorski.services;
 
 import co.igorski.client.HttpClient;
 import co.igorski.configuration.Configuration;
+import co.igorski.exceptions.SnitcherException;
 import co.igorski.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ class LoginService {
                 user.setUsername(configuration.getUsername());
             }
 
-        } catch (IOException e) {
+        } catch (IOException | SnitcherException e) {
             LOGGER.error("Error while trying to log in.", e);
         }
 

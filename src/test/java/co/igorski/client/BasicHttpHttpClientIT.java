@@ -1,5 +1,6 @@
 package co.igorski.client;
 
+import co.igorski.exceptions.SnitcherException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import extensions.Wiremock;
 import extensions.WiremockExtension;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BasicHttpHttpClientIT {
 
     @Test
-    public void shouldPostForm(@Wiremock WireMockServer server) throws IOException {
+    public void shouldPostForm(@Wiremock WireMockServer server) throws IOException, SnitcherException {
 
         server.stubFor(post(urlEqualTo("/login"))
                 .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
@@ -39,7 +40,7 @@ class BasicHttpHttpClientIT {
     }
 
     @Test
-    public void shouldPost(@Wiremock WireMockServer server) throws IOException {
+    public void shouldPost(@Wiremock WireMockServer server) throws IOException, SnitcherException {
 
         String body = "{}";
 

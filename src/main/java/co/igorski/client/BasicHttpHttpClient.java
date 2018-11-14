@@ -1,5 +1,9 @@
 package co.igorski.client;
 
+import co.igorski.exceptions.SnitcherException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,8 +22,15 @@ import java.util.StringJoiner;
  */
 public class BasicHttpHttpClient implements HttpClient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(BasicHttpHttpClient.class);
+
     @Override
-    public int postForm(String target, Map<String, String> form) throws IOException {
+    public int postForm(String target, Map<String, String> form) throws IOException, SnitcherException {
+
+        if (target == null) {
+            throw new SnitcherException("Target must not be null");
+        }
+
         URL url;
         url = new URL(target);
 
@@ -42,7 +53,11 @@ public class BasicHttpHttpClient implements HttpClient {
     }
 
     @Override
-    public String post(String target, String body) throws IOException {
+    public String post(String target, String body) throws IOException, SnitcherException {
+
+        if (target == null) {
+            throw new SnitcherException("Target must not be null");
+        }
 
         URL url;
         url = new URL(target);
@@ -75,7 +90,7 @@ public class BasicHttpHttpClient implements HttpClient {
 
             response = result.toString("UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("Could not read response from server.", e);
         }
 
         return response;
