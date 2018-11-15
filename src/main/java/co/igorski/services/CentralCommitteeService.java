@@ -91,6 +91,22 @@ public class CentralCommitteeService implements TestExecutionListener {
     }
 
     @Override
+    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
+
+        if (skipExecution) return;
+
+        TestModel testModel = tests.get(getUniqueId(testIdentifier));
+        testModel.setStatus(Status.RUNNING);
+        try {
+            if (reason.endsWith("is @Disabled")) {
+                eventService.testDisabled(testModel, testRun.getId());
+            }
+        } catch (SnitcherException e) {
+            LOG.error("Error sending test started event", e);
+        }
+    }
+
+    @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (skipExecution) return;
 

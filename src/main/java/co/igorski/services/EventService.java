@@ -9,6 +9,7 @@ import co.igorski.model.User;
 import co.igorski.model.events.Event;
 import co.igorski.model.events.RunFinished;
 import co.igorski.model.events.RunStarted;
+import co.igorski.model.events.TestDisabled;
 import co.igorski.model.events.TestFinished;
 import co.igorski.model.events.TestStarted;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -87,5 +88,14 @@ class EventService {
         } catch (IOException e) {
             throw new SnitcherException("Error when sending Event request.", e);
         }
+    }
+
+    void testDisabled(TestModel testModel, Long runId) throws SnitcherException {
+
+        TestDisabled testDisabled = new TestDisabled();
+        testDisabled.setTest(testModel);
+        testDisabled.setTimestamp(new Date());
+        testDisabled.setRunId(runId);
+        sendPost("/events/testDisabled", testDisabled);
     }
 }

@@ -141,6 +141,25 @@ class CentralCommitteeServiceTest {
     }
 
     @Test
+    public void shouldSendTestDisabledEvent() throws SnitcherException {
+
+        TestPlan testPlan = launcher.discover(request);
+        CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);
+
+        User user = new User();
+        when(loginService.login()).thenReturn(user);
+        TestRun testRun = new TestRun();
+        testRun.setId(1L);
+        when(eventService.testRunStarted(tests, user)).thenReturn(testRun);
+        service.testPlanExecutionStarted(testPlan);
+
+        TestIdentifier testIdentifier = getTestIdentifier();
+        service.executionSkipped(testIdentifier, "shouldSendTestDisabledEvent() is @Disabled");
+
+        verify(eventService).testDisabled(test, testRun.getId());
+    }
+
+    @Test
     public void shouldSendTestFinishedEventWithSuccess() throws SnitcherException {
         TestPlan testPlan = launcher.discover(request);
         CentralCommitteeService service = new CentralCommitteeService(loginService, eventService);

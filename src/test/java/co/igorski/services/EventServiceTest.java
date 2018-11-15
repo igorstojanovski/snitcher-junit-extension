@@ -3,11 +3,13 @@ package co.igorski.services;
 import co.igorski.client.BasicHttpHttpClient;
 import co.igorski.configuration.Configuration;
 import co.igorski.exceptions.SnitcherException;
+import co.igorski.model.Status;
 import co.igorski.model.TestModel;
 import co.igorski.model.TestRun;
 import co.igorski.model.User;
 import co.igorski.model.events.RunFinished;
 import co.igorski.model.events.RunStarted;
+import co.igorski.model.events.TestDisabled;
 import co.igorski.model.events.TestFinished;
 import co.igorski.model.events.TestStarted;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -167,5 +169,26 @@ class EventServiceTest {
 
         assertThat(testStarted.getRunId()).isEqualTo(RUN_ID);
         assertThat(testStarted.getTest()).isEqualTo(testModel);
+    }
+
+    @Test
+    public void shouldSendTestDisabledEvent() throws IOException, SnitcherException {
+
+        EventService eventService = new EventService(basicHttpHttpClient, configuration);
+        TestModel testModel = new TestModel();
+        testModel.setTestClass(TEST_CLASS);
+        testModel.setTestName("shouldSendTestFinishedEvent");
+        testModel.setStatus(Status.DISABLED);
+
+        String url = HTTP_LOCALHOST_8080 + "/events/testDisabled";
+        eventService.testDisabled(testModel, RUN_ID);
+
+        verify(basicHttpHttpClient).post(eq(url), bodyCaptor.capture());
+
+        String bodyValue = bodyCaptor.getValue();
+        TestDisabled testDisabled = objectMapper.readValue(bodyValue, TestDisabled.class);
+
+        assertThat(testDisabled.getRunId()).isEqualTo(RUN_ID);
+        assertThat(testDisabled.getTest()).isEqualTo(testModel);
     }
 }
